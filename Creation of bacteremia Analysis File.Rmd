@@ -6,9 +6,8 @@ output: html_document:
     self-contained: true
     code-link: false
     code-tools: true
-    code-fold: show
-    code-block-bg: "#f1f3f5"
-    code-block-border-left: "#31BAE9"
+    code-fold: hide
+
 ---
 
 ```{r}
