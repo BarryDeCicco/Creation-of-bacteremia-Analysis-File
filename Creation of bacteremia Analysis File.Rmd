@@ -1,0 +1,132 @@
+---
+title: "Creation of bacteremia Analysis File"
+author: "Barry DeCicco"
+date: "2023-05-31"
+output: html_document:
+    self-contained: true
+    code-link: false
+    code-tools: true
+    code-fold: show
+    code-block-bg: "#f1f3f5"
+    code-block-border-left: "#31BAE9"
+---
+
+```{r}
+require(Hmisc)
+require(qreport)
+options(prType='html')
+require(rio)
+d <- import('https://zenodo.org/record/7554815/files/bacteremia-DataDictionary.csv?download=1')
+d <- subset(d, Variable != 'BloodCulture')
+v <- tolower(d$Variable)
+labels <- d$Label
+units  <- d$Units
+names(labels) <- v
+names(units)  <- v
+units['id'] <- units['sex'] <- ''
+
+labels <- c(labels, bacteremia='Bacteremia present by blood culture')
+units  <- c(units,  bacteremia='')
+labels['glu'  ] <- 'Glucose'
+labels['baso' ] <- 'Basophils'
+labels['ck'   ] <- 'Creatine kinase'
+labels['basor'] <- 'Basophil ratio'
+
+d <- import('https://zenodo.org/record/7554815/files/Bacteremia_public_S2.csv?download=1')
+names(d) <- tolower(names(d))
+d <- upData(d,
+            sex        = factor(sex, 1:2, c('male', 'female')),
+            bacteremia = 1L * (bloodculture == 'yes'),
+            labels = labels,
+            units  = units,
+            drop   = 'bloodculture')
+options(prType='html')
+
+Hmisc::contents(d)
+```
+
+Click on the tabs to see the different kinds of variables.  Hover over spike histograms to see frequencies and details about binning.
+
+```{r results='asis'}
+bacteremia <- d
+sparkline::sparkline(0)   # load javascript dependencies for interactive spike histograms
+
+maketabs(print(describe(bacteremia), 'both'), cwidth='column-screen-inset-shaded')
+```
+
+```{r}
+save(bacteremia, file='bacteremia.sav', compress=TRUE)
+cat(html(contents(bacteremia)), file='Cbacteremia.html')
+```
+
+Here is the older html output format for `describe`.
+
+```{r}
+describe(bacteremia)
+```
+
+## Data Overview
+
+```{r results='asis'}
+dataOverview(bacteremia, id = ~ id)
+```
+
+## Missing Data Report
+
+```{r results='asis'}
+missChk(bacteremia, prednmiss=TRUE, omitpred='id')
+```
+
+## Variable Clustering Report
+
+The R `Hmisc` package `transace` function, which uses the ACE (alternating conditional expectation) algorithm, is used to transform all the continuous variables.  Transformations use nonparametric smoothers and are allowed to be non-monotonic.  Transformation solutions maximize the $R^2$ which with each variable can be predicted from the other variables, optimally transformed.  The transformed variables are used in redundancy analysis and sparse principal components analysis.  Bacteremia and subject `id` are not used in these unsupervised learning procedures.
+
+To be more efficient, use multiple (5) imputations with predictive mean matching so that `vClus` will stack all the filled-in datasets before running the redundancy and PCA which are run on the single tall dataset, which contains no `NA`s.  The correlation matrix and `varclus` results are already efficient because they use pairwise deletion of `NA`s.
+
+Because transformed variables are passed to the redundancy analysis, variables are not expanded into splines in that analysis (see `nk=0` below).
+
+
+```{r results='asis'}
+n <- setdiff(names(bacteremia), 'id')
+n[n == 'baso'] <- 'I(baso)'  # force baso to be linear in MI b/c of ties
+f <- as.formula(paste('~', paste(n, collapse='+')))
+midone <- TRUE  # took aregImpute about 15 minutes
+if(! midone) {
+  set.seed(1)   # so that mult. imputations reproduce
+  a <- aregImpute(f, data=bacteremia, n.impute=5)
+  saveRDS(a, 'a.rds')
+  } else a <- readRDS('a.rds')
+v <- vClus(bacteremia, fracmiss=0.8, corrmatrix=TRUE,
+           trans=TRUE, redundancy=TRUE, spc=TRUE,
+           exclude = ~ id + bacteremia,
+                     imputed=a,
+                 redunargs=list(nk=0),
+                 spcargs=list(k=20, sw=TRUE, nvmax=5), # spc took 5 minutes
+                     transacefile='transace.rds',
+                 spcfile='spc.rds')   # spcfile uses previous run if nothing changed
+cat('R^2 in predicting each variable with transace:\n\n')
+htmlVerbatim(round(attr(v$transace, 'rsq'), 3))
+saveRDS(v, '/tmp/v.rds')
+```
+
+```{r}
+#| fig-height: 12
+#| fig-width: 7
+ggplot_transace(v$transace, nrow=12)
+```
+
+```{r}
+#| fig-height: 4
+#| fig-width: 6
+p <- v$princmp
+# Print and plot sparse PC results
+print(p)
+plot(p)
+```
+
+```{r}
+#| fig-height: 7
+#| fig-width: 8
+#| column: screen-right
+plot(v$p, 'loadings', nrow=1)
+```
