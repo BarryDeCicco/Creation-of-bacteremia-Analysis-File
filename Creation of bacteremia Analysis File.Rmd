@@ -2,11 +2,13 @@
 title: "Creation of bacteremia Analysis File"
 author: "Barry DeCicco"
 date: "2023-05-31"
-output: html_document:
-    self-contained: true
-    code-link: false
-    code-tools: true
-    code-fold: hide
+output: 
+  html_document:
+    cold_folding: show
+    toc: true
+    number_sections: true
+    toc_float: true
+    theme: cerulean
 
 ---
 
