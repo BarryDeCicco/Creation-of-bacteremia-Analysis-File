@@ -57,6 +57,7 @@ Click on the tabs to see the different kinds of variables.  Hover over spike his
 ```{r results='asis'}
 bacteremia <- d
 sparkline::sparkline(0)   # load javascript dependencies for interactive spike histograms
+
 maketabs(print(describe(bacteremia), 'both'), cwidth='column-screen-inset-shaded')
 ```
 
