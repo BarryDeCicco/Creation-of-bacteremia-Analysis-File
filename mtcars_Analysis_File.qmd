@@ -19,37 +19,24 @@ execute:
 ---
 
 ```{r}
+options(prType='html')
+
 require(Hmisc)
 require(qreport)
-options(prType='html')
+require(magrittr)
+require(tidyverse)
 require(rio)
-d <- import('https://zenodo.org/record/7554815/files/bacteremia-DataDictionary.csv?download=1')
-d <- subset(d, Variable != 'BloodCulture')
-v <- tolower(d$Variable)
-labels <- d$Label
-units  <- d$Units
-names(labels) <- v
-names(units)  <- v
-units['id'] <- units['sex'] <- ''
 
-labels <- c(labels, bacteremia='Bacteremia present by blood culture')
-units  <- c(units,  bacteremia='')
-labels['glu'  ] <- 'Glucose'
-labels['baso' ] <- 'Basophils'
-labels['ck'   ] <- 'Creatine kinase'
-labels['basor'] <- 'Basophil ratio'
 
-d <- import('https://zenodo.org/record/7554815/files/Bacteremia_public_S2.csv?download=1')
-names(d) <- tolower(names(d))
-d <- upData(d,
-            sex        = factor(sex, 1:2, c('male', 'female')),
-            bacteremia = 1L * (bloodculture == 'yes'),
-            labels = labels,
-            units  = units,
-            drop   = 'bloodculture')
-options(prType='html')
+data(mtcars)
+d <- mtcars
+d <- d %>% tibble::rownames_to_column(., var='Model')
+# class(d)
+# View(d)
 
 Hmisc::contents(d)
+
+
 ```
 
 Click on the tabs to see the different kinds of variables.  Hover over spike histograms to see frequencies and details about binning.
