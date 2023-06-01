@@ -111,7 +111,7 @@ htmlVerbatim(round(attr(v$transace, 'rsq'), 3))
 saveRDS(v, '/tmp/v.rds')
 ```
 
-```{r}
+```{r, eval=FALSE}
 #| fig-height: 12
 #| fig-width: 7
 ggplot_transace(v$transace, nrow=12)
