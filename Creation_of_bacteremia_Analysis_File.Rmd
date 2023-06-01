@@ -69,7 +69,7 @@ describe(bacteremia)
 
 ## Data Overview
 
-```{r results='asis'}
+```{r results='asis', eval=FALSE}
 dataOverview(bacteremia, id = ~ id)
 ```
 
