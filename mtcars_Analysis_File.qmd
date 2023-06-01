@@ -41,9 +41,11 @@ Hmisc::contents(mtcars)
 
 Click on the tabs to see the different kinds of variables.  Hover over spike histograms to see frequencies and details about binning.
 
-```{r results='asis'}
-mtcars <- d
+```{r results='asis', eval=FALSE}
+
 sparkline::sparkline(0)   # load javascript dependencies for interactive spike histograms
+
+# THIS DOES NOT WORK!! "Named arguments are required for `cols_label()`."
 
 maketabs(print(describe(mtcars), 'both'), cwidth='column-screen-inset-shaded')
 ```
