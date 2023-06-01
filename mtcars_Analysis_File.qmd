@@ -29,12 +29,12 @@ require(rio)
 
 
 data(mtcars)
-d <- mtcars
-d <- d %>% tibble::rownames_to_column(., var='Model')
-# class(d)
-# View(d)
 
-Hmisc::contents(d)
+mtcars <- mtcars %>% tibble::rownames_to_column(., var='Model')
+# class(mtcars)
+# View(mtcars)
+
+Hmisc::contents(mtcars)
 
 
 ```
