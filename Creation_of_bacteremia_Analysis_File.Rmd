@@ -88,7 +88,7 @@ To be more efficient, use multiple (5) imputations with predictive mean matching
 Because transformed variables are passed to the redundancy analysis, variables are not expanded into splines in that analysis (see `nk=0` below).
 
 
-```{r results='asis'}
+```{r results='asis', eval=FALSE}
 n <- setdiff(names(bacteremia), 'id')
 n[n == 'baso'] <- 'I(baso)'  # force baso to be linear in MI b/c of ties
 f <- as.formula(paste('~', paste(n, collapse='+')))
